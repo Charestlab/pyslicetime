@@ -45,7 +45,7 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
     Example:
         import numpy as np
         from matplotlib import pyplot as plt
-        x0 = list(range(0, 10, .1))
+        x0 = np.arange(0.0, 10.1, 0.1)
         y0 = np.sin(x0)
         y1 = tseriesinterp(y0, .1, .23);
         plt.plot(x0, y0, 'r.-');
@@ -188,7 +188,7 @@ def isrowvector(m):
     example:
     isrowvector([[1,2]])
     isrowvector([[1]])
-    isrowvector(np.zeros(1))
+    isrowvector(np.zeros(2))
     not isrowvector([])
     """
 
@@ -258,18 +258,42 @@ def reshape2D_undo(f, dim, msize):
     return m
 
 
-def chunking(vect, num, numchunks=None):
-    import pdb
-    vect = [vect]
-    if numchunks is None:
-        f = []
-        for point in np.arange(np.ceil(len(vect)/num)):
-            pdb.set_trace()
-            f.append(
-                vect[list(range(int(point*num), np.min(len(vect), int(point*num))))])
-    else:
-        xbegin = (numchunks-1)*num+1
-        xend = np.min(len(vect), numchunks*num)
-        f = vect[list(range(xbegin, xend))]
+def chunking(vect, num, chunknum=None):
+    """chunking(v,num)
+    Input:
+        <v> is a array
+        <num> is desired length of a chunk
+        <chunknum> is chunk number desired
+    Returns:
+        [numpy array object]:
 
-    return (f, xbegin, xend)
+        return a numpy array object of chunks.  the last vector
+        may have fewer than <num> elements.
+
+        also return the beginning and ending indices associated with
+        this chunk in <xbegin> and <xend>.
+
+    Examples:
+
+        a = np.empty((2,), dtype=np.object)
+        a[0] = [1, 2, 3]
+        a[1] = [4, 5]
+        assert(np.all(chunking(list(np.arange(5)+1),3)==a)
+
+        assert(chunking([4, 2, 3], 2, 2)==[3])
+
+    """
+    if chunknum is None:
+        nchunk = int(np.ceil(len(vect)/num))
+        f = np.empty((nchunk, ), dtype=np.object)
+        for point in range(nchunk):
+            f[point] = vect[point*num:np.min((len(vect), int((point+1)*num)))]
+
+        return f
+    else:
+        nchunk = int(np.ceil(len(vect)/num))
+        f = np.empty((nchunk, ), dtype=np.object)
+        for point in range(nchunk):
+            f[point] = vect[point*num:np.min((len(vect), int((point+1)*num)))]
+
+        return f[num-1]

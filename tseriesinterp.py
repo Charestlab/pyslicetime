@@ -263,7 +263,9 @@ def chunking(vect, num, chunknum=None):
     Input:
         <v> is a array
         <num> is desired length of a chunk
-        <chunknum> is chunk number desired
+        <chunknum> is chunk number desired (here we use a 1-based 
+              indexing, i.e. you may want the frist chunk, or the second
+              chunk, but not the zeroth chunk)
     Returns:
         [numpy array object]:
 
@@ -278,7 +280,7 @@ def chunking(vect, num, chunknum=None):
         a = np.empty((2,), dtype=np.object)
         a[0] = [1, 2, 3]
         a[1] = [4, 5]
-        assert(np.all(chunking(list(np.arange(5)+1),3)==a)
+        assert(np.all(chunking(list(np.arange(5)+1),3)==a))
 
         assert(chunking([4, 2, 3], 2, 2)==[3])
 
@@ -293,6 +295,8 @@ def chunking(vect, num, chunknum=None):
     else:
         nchunk = int(np.ceil(len(vect)/num))
         f = np.empty((nchunk, ), dtype=np.object)
+        xbegin = (chunknum-1)*num+1
+        xend = np.min((len(vect), chunknum*num))
         for point in range(nchunk):
             f[point] = vect[point*num:np.min((len(vect), int((point+1)*num)))]
 

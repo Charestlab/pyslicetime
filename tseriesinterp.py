@@ -295,9 +295,11 @@ def chunking(vect, num, chunknum=None):
     else:
         nchunk = int(np.ceil(len(vect)/num))
         f = np.empty((nchunk, ), dtype=np.object)
+        # double check that these behave like in matlab (xbegin)
         xbegin = (chunknum-1)*num+1
+        # double check that these behave like in matlab (xend)
         xend = np.min((len(vect), chunknum*num))
         for point in range(nchunk):
             f[point] = vect[point*num:np.min((len(vect), int((point+1)*num)))]
 
-        return f[num-1]
+        return f[num-1], xbegin, xend

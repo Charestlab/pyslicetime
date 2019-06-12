@@ -69,7 +69,7 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
 
     # input
     if dim is None:
-        dim = choose(isrowvector(m), 1, 0)
+        dim = choose(iscolumnvector(m), 1, 0)
 
     if numsamples is None:
         numsamples = []
@@ -173,17 +173,21 @@ def choose(flag, yes, no):
     return f
 
 
-def isrowvector(m):
+def iscolumnvector(m):
     """
-    f = isrowvector(m)
 
-    function f = isrowvector(m)
+
+    TOFIX
+
+    f = iscolumnvector(m)
+
+    function f = iscolumnvector(m)
 
     <m> is a matrix
 
-    return whether <m> is 1 x n where n >= 0.
+    return whether <m> is n x None where n >= 0.
     specifically:
-    f = isvector(m) & size(m,1)==1;
+    f = iscolumnvector(m) & m.shape[1]==1;
 
     example:
     isrowvector([[1,2]])

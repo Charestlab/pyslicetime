@@ -259,9 +259,9 @@ def reshape2D_undo(f, dim, msize):
 
 
 def chunking(vect, num, chunknum=None):
-    """chunking(v,num)
+    """ chunking
     Input:
-        <v> is a array
+        <vect> is a array
         <num> is desired length of a chunk
         <chunknum> is chunk number desired (here we use a 1-based 
               indexing, i.e. you may want the frist chunk, or the second
@@ -282,7 +282,7 @@ def chunking(vect, num, chunknum=None):
         a[1] = [4, 5]
         assert(np.all(chunking(list(np.arange(5)+1),3)==a))
 
-        assert(chunking([4, 2, 3], 2, 2)==[3])
+        assert(chunking([4, 2, 3], 2, 2)==([3], 3, 3))
 
     """
     if chunknum is None:
@@ -293,13 +293,10 @@ def chunking(vect, num, chunknum=None):
 
         return f
     else:
-        nchunk = int(np.ceil(len(vect)/num))
-        f = np.empty((nchunk, ), dtype=np.object)
+        f = chunking(vect, num)
         # double check that these behave like in matlab (xbegin)
         xbegin = (chunknum-1)*num+1
         # double check that these behave like in matlab (xend)
         xend = np.min((len(vect), chunknum*num))
-        for point in range(nchunk):
-            f[point] = vect[point*num:np.min((len(vect), int((point+1)*num)))]
 
         return f[num-1], xbegin, xend

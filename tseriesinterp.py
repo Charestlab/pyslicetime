@@ -48,8 +48,11 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
         x0 = np.arange(0.0, 10.1, 0.1)
         y0 = np.sin(x0)
         y1 = tseriesinterp(y0, .1, .23);
-        plt.plot(x0, y0, 'r.-');
-        plt.plot(0: .23: .23*(length(y1)-1), y1, 'go');
+        plt.plot(x0, y0, 'r.-')
+        xtimes = np.arange(0,.23*len(y1), .23)
+        plt.plot(xtimes, y1, 'go', fillstyle='none')
+        plt.autoscale(enable=True, axis='both', tight=True)
+
 
     Another example (complex data):
         import numpy as np
@@ -67,9 +70,13 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
     # internal constants
     numchunks = 20
 
+    # check if m is a vector and make it a stack
+    if len(m.shape) == 1:
+        m = np.asarray([m])
+
     # input
     if dim is None:
-        dim = choose(iscolumnvector(m), 1, 0)
+        dim = len(m.shape)-1
 
     if numsamples is None:
         numsamples = []
@@ -79,8 +86,11 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
     for p in m:
 
         # prep 2D
-        msize = p.shape[0]
-        p = reshape2D(p, dim)
+        msize = p.shape
+        if len(msize) > 1:
+            p = reshape2D(p, dim)
+        else:
+            p = p[np.newaxis].T
 
         # calc
         if numsamples is None:
@@ -91,7 +101,6 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
         x2 = x+d*(n-1);
         f = linspace(x,x2,n);
         """
-
         # do it
         if wantreplicate:
 
@@ -103,14 +112,19 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
             timeorig = np.r_[pre, meat, cherry, dessert]
 
         else:
-            timeorig = np.r_[
-                np.arange(0, trorig*p.shape[0], trorig), trorig*p.shape[0]]
 
-        timenew = np.arange(0, trnew*numsamples, trnew) - fakeout
+            timeorig = \
+                [0.0 + x*(trorig*p.shape[0])/len(p) for x in range(len(p))]
+
+            # timeorig = np.linspace(0, trorig*p.shape[0], p.shape[0])
+        #  timenew  = linspacefixeddiff(0,trnew,numsamples) - fakeout;
+
+        timenew = [0.0 + x*(trnew*numsamples) /
+                   numsamples for x in range(int(numsamples))]
 
         # do in chunks
         chunks = chunking(
-            list(range(p.shape[1])), np.ceil(p.shape[1]/numchunks))
+            list(range(p.shape[1])), int(np.ceil(p.shape[1]/numchunks)))
         temp = []
         mtemp = p
 
@@ -120,10 +134,16 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
                             mtemp[:, q],
                             np.tile(mtemp[-1, q], (3, 1))]
 
-                temp[q] = pchip(timenew, dat, extrapolate=True)(timeorig)
+                temp[q] = pchip(timeorig, dat, extrapolate=True)(timenew)
             else:
-                temp[q] = pchip(timenew, mtemp[:, chunks[q]],
-                                extrapolate=True)(timeorig)
+
+                temp.append(pchip(timeorig, mtemp[:, q],
+                                  extrapolate=True)(timenew))
+                """
+                The code is pretty much working up to here.
+                not sure how to deal with the reshape2D stuff tho.
+                    
+                """
 
         pnew.append(temp)
 
@@ -170,37 +190,6 @@ def choose(flag, yes, no):
         f = yes
     else:
         f = no
-    return f
-
-
-def iscolumnvector(m):
-    """
-
-
-    TOFIX
-
-    f = iscolumnvector(m)
-
-    function f = iscolumnvector(m)
-
-    <m> is a matrix
-
-    return whether <m> is n x None where n >= 0.
-    specifically:
-    f = iscolumnvector(m) & m.shape[1]==1;
-
-    example:
-    isrowvector([[1,2]])
-    isrowvector([[1]])
-    isrowvector(np.zeros(2))
-    not isrowvector([])
-    """
-
-    import numpy as np
-
-    if not isinstance(m, np.ndarray):
-        m = np.asarray(m)
-    f = m.shape[0] == 1
     return f
 
 
@@ -267,7 +256,7 @@ def chunking(vect, num, chunknum=None):
     Input:
         <vect> is a array
         <num> is desired length of a chunk
-        <chunknum> is chunk number desired (here we use a 1-based 
+        <chunknum> is chunk number desired (here we use a 1-based
               indexing, i.e. you may want the frist chunk, or the second
               chunk, but not the zeroth chunk)
     Returns:
@@ -291,11 +280,11 @@ def chunking(vect, num, chunknum=None):
     """
     if chunknum is None:
         nchunk = int(np.ceil(len(vect)/num))
-        f = np.empty((nchunk, ), dtype=np.object)
+        f = []
         for point in range(nchunk):
-            f[point] = vect[point*num:np.min((len(vect), int((point+1)*num)))]
+            f.append(vect[point*num:np.min((len(vect), int((point+1)*num)))])
 
-        return f
+        return np.asarray(f)
     else:
         f = chunking(vect, num)
         # double check that these behave like in matlab (xbegin)
@@ -303,4 +292,4 @@ def chunking(vect, num, chunknum=None):
         # double check that these behave like in matlab (xend)
         xend = np.min((len(vect), chunknum*num))
 
-        return f[num-1], xbegin, xend
+        return np.asarray(f[num-1]), xbegin, xend

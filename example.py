@@ -4,7 +4,7 @@ import os
 from tseriesinterp import tseriesinterp
 from make_image_stack import make_image_stack
 from matplotlib import pyplot as plt
-import seaborne as sns
+import seaborn as sns
 
 tr_old = 2
 tr_new = 1
@@ -20,6 +20,10 @@ epi_data = epi_img.get_data()
 
 # what's in it?
 x, y, z, n_times = epi_data.shape
+
+upscale = tr_old/tr_new
+new_n_times = int(np.ceil(n_times*upscale))
+epi_data_corr = np.zeros((x, y, z, new_n_times))
 
 # sliceorder needs to be 1-based (see fakeout below)
 sliceorder = list(range(z, 0, -1))
@@ -42,12 +46,9 @@ for slice_i in range(z):
                                  fakeout,
                                  wantreplicate=True,
                                  interpmethod='pchip')
-    if slice_i == 0:
-        new_n_times = new_slice_ts.shape[2]
-        epi_data_corr = np.zeros((x, y, z, new_n_times))
 
     epi_data_corr[:, :, slice_i, :] = new_slice_ts
 
 m = make_image_stack(np.mean(epi_data_corr, axis=3))
-plt.image(m)
+sns.heatmap(m)
 plt.show()

@@ -2,6 +2,9 @@ import numpy as np
 import nibabel as nib
 import os
 from tseriesinterp import tseriesinterp
+from make_image_stack import make_image_stack
+from matplotlib import pyplot as plt
+import seaborne as sns
 
 tr_old = 2
 tr_new = 1
@@ -44,3 +47,7 @@ for slice_i in range(z):
         epi_data_corr = np.zeros((x, y, z, new_n_times))
 
     epi_data_corr[:, :, slice_i, :] = new_slice_ts
+
+m = make_image_stack(np.mean(epi_data_corr, axis=3))
+plt.image(m)
+plt.show()

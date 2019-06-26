@@ -48,7 +48,7 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
         x0 = np.arange(0.0, 10.1, 0.1)
         y0 = np.sin(x0)
         y1 = tseriesinterp(y0, .1, .23);
-        plt.plot(x0, y0, 'r.-')
+        plt.plot(x0, y0, 'r.-', lw=1)
         xtimes = np.arange(0,.23*len(y1), .23)
         plt.plot(xtimes, y1, 'go', fillstyle='none')
         plt.autoscale(enable=True, axis='both', tight=True)
@@ -64,6 +64,31 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
 
         plt.plot(list(range(x.shape[1])), x, 'ro');
         plot(linspacefixeddiff(1, .1, length(y2)), y2, 'b-');
+
+    """
+
+    """ 
+    this is how the matlab function is called:
+
+    % episliceorder{1} = [1 14 27 12 25 10 23 8 21 6 19 4 17 2 15 28 13 26 11 24 9 22 7 20 5 18 3 16 1 14 27 12 25 10 23 8 21 6 19 4 17 2 15 28 13 26 11 24 9 22 7 20 5 18 3 16 1 14 27 12 25 10 23 8 21 6 19 4 17 2 15 28 13 26 11 24 9 22 7 20 5 18 3 16];
+    % episliceorder{2} = repmat(episliceorder{2},[1 length(epis)]); %this is the desired new resampling tr
+    % episliceorder{3} = offset (set to 0 by default in preprocessfmri.m)
+    ...
+    
+    dim_ts = 4 % dims are x * y * 1 * time
+    numsamples=[]
+    for p =1:length(epis) % one run at a time??
+        tr_new = episliceorder{2}(p);
+        tr_old = epitr(p);
+        for q=1:size(epis{p},3)  % process each slice separately
+            this_slice_xyts = single(epis{p}(:,:,q,:));
+            this_slice_order= episliceorder{1}(q);
+            max_slice = max(episliceorder{1});
+            fakeout = -(((1-this_slice_order)/max_slice) * tr_old) - episliceorder{3}(p)
+
+            temp0 = tseriesinterp(this_slice_xyts,tr_old,tr_new,dim_ts,numsamples, ...
+                                    fakeout, ...
+                                    1,'pchip')
 
     """
 

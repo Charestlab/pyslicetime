@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.interpolate import pchip
+from pdb import set_trace
 
 
 def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
@@ -16,8 +17,7 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
 
     Args:
         m ([type]): < m > is a matrix with time-series
-            data along some dimension. can also be a cell
-            vector of things like that.
+            data along some dimension. needs to be x_y_time
         trorig ([type]): < trorig > is the sampling
             time of < m > (e.g. 1 second)
         trnew ([type]): < trnew > is the new desired sampling time
@@ -67,116 +67,65 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
 
     """
 
-    """ 
-    this is how the matlab function is called:
-
-    % episliceorder{1} = [1 14 27 12 25 10 23 8 21 6 19 4 17 2 15 28 13 26 11 24 9 22 7 20 5 18 3 16 1 14 27 12 25 10 23 8 21 6 19 4 17 2 15 28 13 26 11 24 9 22 7 20 5 18 3 16 1 14 27 12 25 10 23 8 21 6 19 4 17 2 15 28 13 26 11 24 9 22 7 20 5 18 3 16];
-    % episliceorder{2} = repmat(episliceorder{2},[1 length(epis)]); %this is the desired new resampling tr
-    % episliceorder{3} = offset (set to 0 by default in preprocessfmri.m)
-    ...
-    
-    dim_ts = 4 % dims are x * y * 1 * time
-    numsamples=[]
-    for p =1:length(epis) % one run at a time??
-        tr_new = episliceorder{2}(p);
-        tr_old = epitr(p);
-        for q=1:size(epis{p},3)  % process each slice separately
-            this_slice_xyts = single(epis{p}(:,:,q,:));
-            this_slice_order= episliceorder{1}(q);
-            max_slice = max(episliceorder{1});
-            fakeout = -(((1-this_slice_order)/max_slice) * tr_old) - episliceorder{3}(p)
-
-            temp0 = tseriesinterp(this_slice_xyts,tr_old,tr_new,dim_ts,numsamples, ...
-                                    fakeout, ...
-                                    1,'pchip')
-
-    """
-
     # internal constants
     numchunks = 20
-
-    # check if m is a vector and make it a stack
-    if len(m.shape) == 1:
-        m = np.asarray([m])
 
     # input
     if dim is None:
         dim = len(m.shape)-1
 
+    # prep 2D
+    msize = np.asarray(m.shape)
+    if len(msize) > 1:
+        mflat = reshape2D(m, dim)
+
+    # calc
     if numsamples is None:
-        numsamples = []
+        numsamples = int(np.ceil((mflat.shape[0]*trorig)/trnew))
 
     # do it
-    pnew = []
-    for p in m:
+    if wantreplicate:
 
-        # prep 2D
-        msize = p.shape
-        if len(msize) > 1:
-            p = reshape2D(p, dim)
-        else:
-            p = p[np.newaxis].T
+        pre_pad = np.array((-3, -2, -1))*trorig
+        tps = np.arange(0, trorig*mflat.shape[0], trorig)
+        post_pad = (mflat.shape[0]-1)*trorig+np.array((1, 2, 3))*trorig
 
-        # calc
-        if numsamples is None:
-            numsamples = np.ceil((p.shape[0]*trorig)/trnew)
+        timeorig = np.r_[pre_pad, tps, post_pad]
 
-        """
-        f = linspacefixeddiff(x,d,n)
-        x2 = x+d*(n-1);
-        f = linspace(x,x2,n);
-        """
-        # do it
+    else:
+
+        timeorig = \
+            [0.0 + x*(trorig*mflat.shape[0])/len(mflat)
+                for x in range(len(mflat))]
+
+    timenew = [0.0 + x*(trnew*numsamples) /
+               numsamples for x in range(int(numsamples))] - fakeout
+
+    # do in chunks
+    chunks = chunking(
+        list(range(mflat.shape[1])), int(np.ceil(mflat.shape[1]/numchunks)))
+
+    temp = []
+    for chunk in chunks:
         if wantreplicate:
+            this_ts = mflat[:, chunk]
+            pre_pad = np.tile(mflat[0, chunk], (3, 1))
+            post_pad = np.tile(mflat[-1, chunk], (3, 1))
+            dat = np.r_[pre_pad,
+                        this_ts,
+                        post_pad]
 
-            pre = np.array((-3, -2, -1))*trorig
-            meat = np.arange(0, trorig*p.shape[0], trorig)
-            cherry = np.asarray(trorig*p.shape[0])
-            dessert = p.shape[0]*trorig+np.array((1, 2, 3))*trorig
-
-            timeorig = np.r_[pre, meat, cherry, dessert]
-
+            temp.append(pchip(timeorig, dat, extrapolate=True)(timenew))
         else:
+            temp.append(pchip(timeorig, mflat[:, chunk],
+                              extrapolate=True)(timenew))
+    stacktemp = np.hstack(temp)
 
-            timeorig = \
-                [0.0 + x*(trorig*p.shape[0])/len(p) for x in range(len(p))]
+    # prepare output
+    msize[dim] = numsamples
+    newm = reshape2D_undo(stacktemp, dim, msize)
 
-            # timeorig = np.linspace(0, trorig*p.shape[0], p.shape[0])
-        #  timenew  = linspacefixeddiff(0,trnew,numsamples) - fakeout;
-
-        timenew = [0.0 + x*(trnew*numsamples) /
-                   numsamples for x in range(int(numsamples))]
-
-        # do in chunks
-        chunks = chunking(
-            list(range(p.shape[1])), int(np.ceil(p.shape[1]/numchunks)))
-        temp = []
-        mtemp = p
-
-        for q in chunks:
-            if wantreplicate:
-                dat = np.c_[np.tile(mtemp[0, q], (3, 0)),
-                            mtemp[:, q],
-                            np.tile(mtemp[-1, q], (3, 1))]
-
-                temp[q] = pchip(timeorig, dat, extrapolate=True)(timenew)
-            else:
-
-                temp.append(pchip(timeorig, mtemp[:, q],
-                                  extrapolate=True)(timenew))
-                """
-                The code is pretty much working up to here.
-                not sure how to deal with the reshape2D stuff tho.
-                    
-                """
-
-        pnew.append(temp)
-
-        # prepare output
-        msize[dim] = numsamples
-        m[p] = reshape2D_undo(m[p], dim, msize)
-
-    return m
+    return newm
 
 
 def ang2complex(m):

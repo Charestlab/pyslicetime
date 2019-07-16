@@ -37,6 +37,8 @@ for slice_i =1:z
     epistemp(:,:,slice_i,:) = temp0;                         
 end
 
+
+
 figure; 
 imagesc(makeimagestack(mean(epistemp,4)));
    

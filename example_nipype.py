@@ -8,9 +8,10 @@ in_file = os.path.join('data', 'sub-1_run-1.nii.gz')
 # define some parameters
 tr_old = 2
 tr_new = 1
+n_slices = 32
 
 # sliceorder needs to be 1-based (see fakeout below)
-slicetimes = np.flip(np.arange(0, tr_old, tr_old/z))
+slicetimes = np.flip(np.arange(0, tr_old, tr_old/n_slices)).tolist()
 
 st = SliceTime()
 st.inputs.in_file = in_file

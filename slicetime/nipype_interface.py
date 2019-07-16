@@ -22,8 +22,8 @@ class SliceTimeInputSpec(BaseInterfaceInputSpec):
     tr_new = traits.Float(desc='what is the new TR for interpolation',
                           mandatory=True)
 
-    sliceorder = traits.ListInt(desc='what is the sliceorder for slice-time',
-                                mandatory=True)
+    slicetimes = traits.ListFloat(desc='what are the slicetimes',
+                                  mandatory=True)
 
 
 class SliceTimeOutputSpec(TraitedSpec):
@@ -39,7 +39,7 @@ class SliceTime(BaseInterface):
         run_slicetime(
             inpath=self.inputs.in_file,
             outpath=self.inputs.out_file,
-            sliceorder=self.inputs.sliceorder,
+            slicetimes=self.inputs.slicetimes,
             tr_old=self.inputs.tr_old,
             tr_new=self.inputs.tr_new,
         )

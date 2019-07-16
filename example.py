@@ -14,12 +14,12 @@ in_file = os.path.join('data', 'sub-1_run-1.nii.gz')
 out_file = os.path.join('data', 'sub-1_run-1_slicetimed.nii.gz')
 
 # sliceorder needs to be 1-based (see fakeout below)
-sliceorder = list(range(32, 0, -1))
+slicetimes = np.flip(np.arange(0, tr_old, tr_old/z))
 
 run_slicetime(
     inpath=in_file,
     outpath=out_file,
-    sliceorder=sliceorder,
+    slicetimes=slicetimes,
     tr_old=tr_old,
     tr_new=tr_new,
 )

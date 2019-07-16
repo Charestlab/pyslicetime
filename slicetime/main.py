@@ -13,7 +13,7 @@ def run_slicetime(inpath, outpath, slicetimes=None, tr_old=2,
     Args:
         inpath ([type]): [description]
         outpath ([type]): [description]
-        sliceorder ([type]): [description]
+        slicetimes ([type]): [description]
         tr_old (int, optional): [description]. Defaults to 2.
         tr_new (int, optional): [description]. Defaults to 1.
         time_dim (int, optional): [description]. Defaults to 2.

@@ -1,5 +1,6 @@
 import nibabel as nib
 import numpy as np
+from scipy.stats import rankdata
 from slicetime.tseriesinterp import tseriesinterp
 
 
@@ -33,7 +34,7 @@ def run_slicetime(inpath, outpath, slicetimes=None, tr_old=2,
     if slicetimes is None:
         slicetimes = np.flip(np.arange(0, tr_old, tr_old/z))
 
-    sliceorder = np.argsort(slicetimes)+1
+    sliceorder = rankdata(slicetimes, method='dense')
 
     numsamples = None
 

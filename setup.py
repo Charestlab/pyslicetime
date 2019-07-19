@@ -7,7 +7,7 @@ with open('requirements.txt') as reqfile:
 
 setup(
     name='pyslicetime',
-    version='0.1',
+    version='0.2',
     description='Python Slice Timing Correction',
     url='https://github.com/Charestlab/pyslicetime',
     long_description='',

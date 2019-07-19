@@ -1,6 +1,6 @@
 from nipype.interfaces.base import BaseInterface, \
-    BaseInterfaceInputSpec, traits, File, TraitedSpec
-from nipype.utils.filemanip import split_filename
+    BaseInterfaceInputSpec, traits, File, TraitedSpec, isdefined
+from nipype.utils.filemanip import fname_presuffix
 from slicetime.main import run_slicetime
 import os
 
@@ -13,10 +13,7 @@ class SliceTimeInputSpec(BaseInterfaceInputSpec):
     )
 
     out_file = File(
-        name_template='%s_tshift',
         desc='output image file name',
-        name_source='in_file',
-        mandatory=True
     )
 
     tr_old = traits.Float(
@@ -36,7 +33,9 @@ class SliceTimeInputSpec(BaseInterfaceInputSpec):
 
 
 class SliceTimeOutputSpec(TraitedSpec):
-    out_file = File(desc="slice-time interpolated volume")
+    out_file = File(
+        desc="slice-time interpolated volume"
+    )
 
 
 class SliceTime(BaseInterface):
@@ -47,7 +46,7 @@ class SliceTime(BaseInterface):
 
         run_slicetime(
             inpath=self.inputs.in_file,
-            outpath=self.inputs.out_file,
+            outpath=self._gen_outfilename(),
             slicetimes=self.inputs.slicetimes,
             tr_old=self.inputs.tr_old,
             tr_new=self.inputs.tr_new,
@@ -55,7 +54,13 @@ class SliceTime(BaseInterface):
 
         return runtime
 
+    def _gen_outfilename(self):
+        out_file = self.inputs.out_file
+        if not isdefined(out_file) and isdefined(self.inputs.in_file):
+            out_file = fname_presuffix(self.inputs.in_file, suffix='_stc')
+        return os.path.abspath(out_file)
+
     def _list_outputs(self):
-        outputs = self._outputs().get()
-        outputs["out_file"] = self.inputs.out_file
+        outputs = self.output_spec().get()
+        outputs['out_file'] = self._gen_outfilename()
         return outputs

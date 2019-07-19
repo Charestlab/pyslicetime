@@ -20,4 +20,5 @@ singularity run -B $DATADIR:/data -B $TMPDIR:/work -B $TMPDIR:/tmp -c -e fmripre
     --fs-license-file /data/fs-license/license.txt \
     --nthreads $NTHREADS \
     --mem-mb $MAXMEMMB \
+    --fs-no-reconall \
     --upsample-tr 0.5

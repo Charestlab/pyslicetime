@@ -9,21 +9,30 @@ class SliceTimeInputSpec(BaseInterfaceInputSpec):
     in_file = File(
         exists=True,
         desc='volume to be slice-time interpolated',
-        mandatory=True)
+        mandatory=True
+    )
 
     out_file = File(
         name_template='%s_tshift',
         desc='output image file name',
-        name_source='in_file')
+        name_source='in_file',
+        mandatory=True
+    )
 
-    tr_old = traits.Float(desc='what is the acquisition TR',
-                          mandatory=True)
+    tr_old = traits.Float(
+        desc='what is the acquisition TR',
+        mandatory=True
+    )
 
-    tr_new = traits.Float(desc='what is the new TR for interpolation',
-                          mandatory=True)
+    tr_new = traits.Float(
+        desc='what is the new TR for interpolation',
+        mandatory=True
+    )
 
-    slicetimes = traits.ListFloat(desc='what are the slicetimes',
-                                  mandatory=True)
+    slicetimes = traits.ListFloat(
+        desc='what are the slicetimes',
+        mandatory=True
+    )
 
 
 class SliceTimeOutputSpec(TraitedSpec):

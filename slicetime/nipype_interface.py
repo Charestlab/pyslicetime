@@ -27,7 +27,7 @@ class SliceTimeInputSpec(BaseInterfaceInputSpec):
 
 
 class SliceTimeOutputSpec(TraitedSpec):
-    slicetimed_volume = File(desc="slice-time interpolated volume")
+    out_file = File(desc="slice-time interpolated volume")
 
 
 class SliceTime(BaseInterface):
@@ -48,5 +48,5 @@ class SliceTime(BaseInterface):
 
     def _list_outputs(self):
         outputs = self._outputs().get()
-        outputs["slicetimed_volume"] = self.inputs.out_file
+        outputs["out_file"] = self.inputs.out_file
         return outputs

@@ -18,5 +18,4 @@ st.inputs.in_file = in_file
 st.inputs.tr_old = tr_old
 st.inputs.tr_new = tr_new
 st.inputs.slicetimes = slicetimes
-st.inputs.out_file = os.path.join('data', 'sub-1_run-1_slicetimed.nii.gz')
 res = st.run()

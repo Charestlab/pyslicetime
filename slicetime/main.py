@@ -21,7 +21,7 @@ def run_slicetime(inpath, outpath, slicetimes=None, tr_old=2,
     """
 
     data_pointer = nib.load(inpath)
-    data = data_pointer.get_data()
+    data = data_pointer.get_fdata()
 
     # what's in it?
     x, y, z, n_times = data.shape

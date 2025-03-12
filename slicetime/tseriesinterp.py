@@ -80,7 +80,9 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
 
     # calc
     if numsamples is None:
-        numsamples = int(np.ceil((mflat.shape[0]*trorig)/trnew))
+        numsamples0 = int(np.ceil((mflat.shape[0]*trorig)/trnew))
+    else:
+        numsamples0 = numsamples
 
     # do it
     if wantreplicate:
@@ -97,8 +99,8 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
             [0.0 + x*(trorig*mflat.shape[0])/len(mflat)
                 for x in range(len(mflat))]
 
-    timenew = [0.0 + x*(trnew*numsamples) /
-               numsamples for x in range(int(numsamples))] - fakeout
+    timenew = [0.0 + x*(trnew*numsamples0) /
+               numsamples for x in range(int(numsamples0))] - fakeout
 
     # do in chunks
     chunks = chunking(
@@ -121,7 +123,7 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
     stacktemp = np.hstack(temp)
 
     # prepare output
-    msize[dim] = numsamples
+    msize[dim] = numsamples0
     newm = reshape2D_undo(stacktemp, dim, msize)
 
     return newm

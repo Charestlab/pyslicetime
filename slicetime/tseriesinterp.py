@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.interpolate import pchip
-
+from utils import linspacefixeddiff
 
 def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
                   fakeout=0, wantreplicate=False, interpmethod='pchip', slicetimes=None):
@@ -95,12 +95,9 @@ def tseriesinterp(m, trorig, trnew, dim=None, numsamples=None,
 
     else:
 
-        timeorig = \
-            [0.0 + x*(trorig*mflat.shape[0])/len(mflat)
-                for x in range(len(mflat))]
+        timeorig = linspacefixeddiff(0, trorig, mflat.shape[0])
 
-    timenew = [0.0 + x*(trnew*numsamples0) /
-               numsamples for x in range(int(numsamples0))] - fakeout
+    timenew  = linspacefixeddiff(0, trnew, numsamples0) - fakeout
 
     # do in chunks
     chunks = chunking(
